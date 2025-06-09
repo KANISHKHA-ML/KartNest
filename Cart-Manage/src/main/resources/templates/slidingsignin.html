@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        body{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height:100vh;
+            background: #f0f2f5; 
+        }
+        button{
+            
+            border-radius: 25px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+            border: 1px solid transparent; 
+            color: white; 
+            padding:10px 25px; 
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase; 
+            transition: transform 80ms ease-in, background-color 0.3s ease; 
+            cursor: pointer;
+            outline: none; 
+        }
+        button:active{
+            transform:scale(0.95);
+        }
+        
+        .form-container button {
+            background: linear-gradient(to right, #c471f5, #fa71cd); 
+            border-color: #c471f5; 
+        }
+        .form-container button:hover {
+            opacity: 0.9; 
+        }
+
+       
+        button.ghost{
+            background-color: transparent; 
+            border-color: white; 
+            color: white; 
+        }
+        button.ghost:hover {
+            background-color: rgba(255, 255, 255, 0.1); 
+        }
+
+
+        .form-container form{
+            background: white;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 40px; 
+            height:100%;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .form-container input, .form-container select{ 
+            background: #f2f2f2; 
+            border:1px solid #ddd; 
+            border-radius: 15px;
+            padding: 10px 15px; 
+            outline: none;
+            margin:8px 0; 
+            width: 100%; 
+            max-width: 280px; 
+        }
+        .form-container input:focus, .form-container select:focus{
+            border-color: #c471f5; 
+            box-shadow: 0 0 0 0.2rem rgba(196, 113, 245, 0.25); 
+        }
+        .form-container input:hover, .form-container select:hover{
+            transform:scale(1.01); 
+        }
+        .container{
+            background:white;
+            border-radius: 10px; 
+            box-shadow: 5px 5px 20px 10px rgba(0, 0, 0, 0.1); 
+            position: relative;
+            overflow: hidden;
+            width:768px;
+            max-width: 100%; 
+            min-height: 480px;
+        }
+
+        .form-container{
+            position: absolute;
+            top:0;
+            height: 100%;
+            transition: all .6s ease-in-out;
+        }
+        .sign-in-container{
+            left:0;
+            width: 50%;
+            z-index:2;
+        }
+        .container.right-panel-active .sign-in-container{
+            transform:translateX(100%);
+            opacity: 0;
+        }
+
+        .sign-up-container{
+            left:0;
+            width:50%;
+            z-index: 1;
+            opacity: 0;
+        }
+        .container.right-panel-active .sign-up-container{
+            transform:translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: show 0.6s;
+        }
+        @keyframes show{
+            0%,49.99%{
+                opacity: 0;
+                z-index: 1;
+            }
+            50%,100%{
+                opacity: 1;
+                z-index: 5;
+            }
+        }
+        .overlay-container{
+            position: absolute;
+            top:0;
+            left:50%;
+            width:50%;
+            height:100%;
+            overflow: hidden;
+            transition: transform .6s ease-in-out;
+            z-index: 100;
+        }
+        .container.right-panel-active .overlay-container{
+            transform:translateX(-100%);
+        }
+        .overlay{
+            
+            background-image: linear-gradient(to top, #c471f5 0%, #fa71cd 100%);
+            position: relative;
+            left:-100%;
+            height:100%;
+            width:200%;
+            transform: translateX(0);
+            transition: transform .6s ease-in-out;
+        }
+        .container.right-panel-active .overlay{
+            transform :translateX(50%);
+        }
+        .overlay-panel{
+            position: absolute;
+            top:0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding:0 20px;
+            height:100%;
+            width:50%;
+            text-align: center;
+            transform: translateX(0);
+            transition: transform .6s ease-in-out;
+            color: white; 
+        }
+        .overlay-left{
+            transform:translateX(-20px);
+        }
+        .container.right-panel-active .overlay-left{
+            transform :translateX(0);
+        }
+        .overlay-right{
+            right:0;
+            transform:translateX(0);
+        }
+
+        .container.right-panel-active .overlay-right{
+            transform :translateX(20px);
+        }
+
+        #popup {
+            display: none; 
+            padding: 15px 25px;
+            background-color: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 999; 
+            position: absolute; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); 
+            text-align: center;
+            min-width: 300px;
+        }
+        #popup.error {
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-container button{
+            margin-top:10px;
+        }
+
+        
+        .overlay-panel h1 {
+            color: white;
+            margin-bottom: 10px; 
+        }
+        .overlay-panel p {
+            color: rgba(255, 255, 255, 0.8); 
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px; 
+        }
+
+    </style>
+</head>
+
+
+<body>
+    <section>
+        <div class="container" id="container">
+            <div class="form-container sign-up-container">
+                <form id="signupform">
+                    <h1> Sign up </h1>
+
+                    <label>
+                        <input type="text" placeholder="Name" name="username" required>
+                        <small class="error-message"></small>
+                    </label>
+                    <label>
+                        <input type="email" placeholder="Email" name="email" required>
+                        <small class="error-message"></small>
+                    </label>
+                    <label>
+                        <input type="password" placeholder="Password" name="password" required>
+                        <small class="error-message"></small>
+                    </label>
+                    <label>
+                        <select name="role" required style="width:100%;">
+                            <option value=""> Select Role </option>
+                            <option value="ROLE_USER"> User </option>
+                            <option value="ROLE_ADMIN"> Admin </option>
+                        </select>
+                        <small class="error-message"></small>
+                    </label>
+                    <button type="submit"> Sign up </button>
+                </form>
+            </div>
+            <div class="form-container sign-in-container">
+                <form th:action="@{/login}" method="post">
+                    <h1> Sign in </h1>
+                    <label>
+                        <input type="text" placeholder="Name" name="username" required>
+                    </label>
+                    <label>
+                        <input type="password" placeholder="Password" name="password" required>
+                    </label>
+                    <button type="submit"> Sign in </button>
+                </form>
+            </div>
+            <div class="overlay-container">
+                <div class="overlay">
+                    <div class="overlay-panel overlay-left">
+                        <h1> Welcome Back </h1>
+                        <p> Sign in here if you already have an account </p>
+                        <button class="ghost" id="signin"> Sign in </button>
+                    </div>
+                    <div class="overlay-panel overlay-right">
+                        <h1> Register </h1>
+                        <p> Sign up here if you don't have an account </p>
+                        <button class="ghost" id="signup"> Sign up </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="popup"></div>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <script>
+        const signupbutton = document.getElementById('signup');
+        const signinbutton = document.getElementById('signin');
+        const container = document.getElementById('container');
+        const popup = $('#popup');
+        const signupForm = $('#signupform');
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentPath = window.location.pathname;
+
+        function showPopup(message, isError) {
+            popup.text(message)
+                .toggleClass('error', isError)
+                .fadeIn();
+            setTimeout(() => {
+                popup.fadeOut(() => popup.removeClass('error'));
+            }, 3000);
+        }
+
+        if (urlParams.has('error')) {
+            showPopup('Invalid Username or Password.', true);
+            window.history.replaceState({}, document.title, currentPath);
+        } else if (urlParams.has('logout')) {
+            showPopup('You have been logged out successfully.', false);
+            window.history.replaceState({}, document.title, currentPath);
+        }
+
+        signupbutton.addEventListener('click', () => {
+            container.classList.add('right-panel-active');
+            popup.fadeOut().removeClass('error');
+        });
+
+        signinbutton.addEventListener('click', () => {
+            container.classList.remove('right-panel-active');
+            popup.fadeOut().removeClass('error');
+        });
+
+        $('#signupform').submit(function (event) {
+            event.preventDefault();
+            popup.fadeOut().removeClass('error');
+            $('.error-message').text(''); // Clear previous field errors
+
+            const formData = {
+                username: signupForm.find('input[name="username"]').val(),
+                email: signupForm.find('input[name="email"]').val(),
+                password: signupForm.find('input[name="password"]').val(),
+                role: signupForm.find('select[name="role"]').val()
+            };
+
+            $.ajax({
+                url: '/registerUser',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 'success') {
+                        popup.text(response.message).removeClass('error').fadeIn();
+                        $('#signupform')[0].reset();
+                    } else if (response.status === 'error') {
+                        popup.text(response.message).addClass('error').fadeIn();
+                    }
+                    setTimeout(() => {
+                        popup.fadeOut();
+                    }, 3000);
+                },
+                error: function (xhr) {
+                    let errorMessage = 'An unexpected error occurred. Please try again.';
+                    $('.error-message').text('');
+
+                    if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        popup.text('Validation failed').addClass('error').fadeIn();
+                        xhr.responseJSON.errors.forEach(err => {
+                            const field = err.field;
+                            const message = err.defaultMessage;
+                            signupForm.find(`[name="${field}"]`).siblings('.error-message').text(message);
+                        });
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                        popup.text(errorMessage).addClass('error').fadeIn();
+                    }
+
+                    setTimeout(() => {
+                        popup.fadeOut();
+                    }, 3000);
+                }
+            });
+        });
+    </script>
+</body>
+
+
+
+</html>

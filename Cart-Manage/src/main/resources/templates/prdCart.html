@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+
+        .search-bar {
+            border-radius: 20px;
+            padding: 5px 15px;
+            width: 300px;
+            margin-left:-100px;
+        }
+
+        .cart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 100px;
+        }
+
+        .cart-card {
+            background: linear-gradient(to bottom, #ffffff, #f1f1f1);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease-in-out;
+            text-align: center;
+            width: 260px;
+        }
+
+        .cart-card:hover {
+            transform: scale(1.05);
+        }
+
+        .cart-card h5 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .cart-card .card-text {
+            font-size: 16px;
+            color: #555;
+        }
+
+        .quantity-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            padding: 0;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .quantity-btn:hover {
+            background: #fa71cd;
+            color: white;
+        }
+
+        .cart-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-top: 2px solid #ccc;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-danger {
+            background: linear-gradient(to right, #ff4b5c, #ff7e67);
+            border: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(to right, #ff7e67, #ff4b5c);
+        }
+
+        .empty-cart-message {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: 80px;
+            color: #888;
+        }
+
+        .navbar {
+            background-image: linear-gradient(to top, #c471f5 0%, #fa71cd 100%);
+            position: relative;
+            z-index: 1000;
+            padding: 1rem 1.5rem;
+        }
+
+        .navbar-brand {
+            font-size: 26px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md">
+    <div class="container-fluid d-flex align-items-center">
+        <a class="navbar-brand" href="#">🛍️ KARTNEST</a>
+
+        <div class="d-flex mx-auto">
+            <form th:action="@{/user/search}" method="get" class="d-flex">
+                <input type="text" name="pattern" class="form-control search-bar me-2" placeholder="🔎 Search products..." required>
+                <button type="submit" class="btn btn-outline-light">Search</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h3 class="text-center mb-4">Your Cart</h3>
+
+    <div th:if="${#lists.isEmpty(cartItems)}" class="empty-cart-message">
+        <p>Your cart is empty.</p>
+    </div>
+
+    <div class="cart-container" th:if="${not #lists.isEmpty(cartItems)}">
+        <div class="cart-card" th:each="item : ${cartItems}">
+            <h5 th:text="${item.products.productName}"></h5>
+            <p><strong>Price:</strong> ₹<span th:text="${item.products.price}"></span></p>
+
+            <div class="d-flex align-items-center mb-2">
+                <form th:action="@{/cart/update}" method="post" class="me-2">
+                    <input type="hidden" name="userId" th:value="${session.userID}" />
+                    <input type="hidden" name="productId" th:value="${item.products.productId}"/>
+                    <input type="hidden" name="quantity" th:value="${item.quantity - 1}"/>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary quantity-btn" th:disabled="${item.quantity == 1}">-</button>
+                </form>
+
+                <span class="mx-2" th:text="${item.quantity}"></span>
+
+                <form th:action="@{/cart/update}" method="post" class="ms-2">
+                    <input type="hidden" name="userId" th:value="${session.userID}" />
+                    <input type="hidden" name="productId" th:value="${item.products.productId}"/>
+                    <input type="hidden" name="quantity" th:value="${item.quantity + 1}"/>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary quantity-btn">+</button>
+                </form>
+            </div>
+
+            <p><strong>Total:</strong> ₹<span th:text="${item.products.price * item.quantity}"></span></p>
+
+            <form th:action="@{/cart/delete}" method="post">
+                <input type="hidden" name="userId" th:value="${session.userID}" />
+                <input type="hidden" name="productId" th:value="${item.products.productId}"/>
+                <button type="submit" class="btn btn-sm btn-danger w-100">Remove</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="cart-footer">
+        <div>
+            <strong>Grand Total: ₹</strong>
+            <span th:if="${not #lists.isEmpty(cartItems)}"
+                  th:text="${#numbers.formatDecimal(grandTotal, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+            <span th:if="${#lists.isEmpty(cartItems)}">0.00</span>
+        </div>
+
+        <div>
+            <a th:href="@{/cart/products}" class="btn btn-outline-primary me-2">Back to Products</a>
+
+            <form th:if="${not #lists.isEmpty(cartItems)}" th:action="@{/order/placeOrder}" method="get" style="display:inline;">
+                <input type="hidden" name="userId" th:value="${session.userID}" />
+                <input type="hidden" name="totalAmount" th:value="${grandTotal}" />
+                <input type="hidden" name="productCount" th:value="${cartItems.size()}"/>
+                <button type="submit" class="btn btn-success">Proceed to Order</button>
+            </form>
+
+            <button class="btn btn-success" th:if="${#lists.isEmpty(cartItems)}" disabled>Proceed to Order</button>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
